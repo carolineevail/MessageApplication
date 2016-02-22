@@ -1,0 +1,12 @@
+<html>
+<body>
+<form action="/create-message" method="post">
+    <input type="text" placeholder="Write a message" name="newMessage"/>
+    <button type="submit">Submit</button>
+</form>
+Messages by {{name}} <br>
+{{#messages}}
+{{id}}. {{message}} <br>
+{{/messages}}
+</body>
+</html>
