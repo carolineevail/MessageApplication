@@ -5,10 +5,18 @@ package com.theironyard;
  */
 public class Message {
     String message;
-    int id;
+//    int id;
 
-    public Message(String message, int id) {
+    public Message(String message) {
         this.message = message;
-        this.id = id;
+//        this.id = id;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

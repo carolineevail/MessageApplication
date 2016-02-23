@@ -1,12 +1,30 @@
 <html>
 <body>
+<form action="logout" method="post">
+    <button type="submit">Logout</button>
+</form>
+
 <form action="/create-message" method="post">
     <input type="text" placeholder="Write a message" name="newMessage"/>
     <button type="submit">Submit</button>
 </form>
+
+<form action="/delete-message" method="post">
+    <input type="text" placeholder="Message #" name="deleteMessageId"/>
+    <button type="submit">Delete</button>
+</form>
+
+<form action="/edit-message" method="post">
+    <input type="text" placeholder="Message #" name="editMessageId"/>
+    <input type="text" placeholder="Edit message" name="editMessageText"/>
+    <button type="submit">Edit</button>
+</form>
+
 Messages by {{name}} <br>
+<ol>
 {{#messages}}
-{{id}}. {{message}} <br>
+<li>{{message}}</li>
 {{/messages}}
+</ol>
 </body>
 </html>

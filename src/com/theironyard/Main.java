@@ -1,37 +1,36 @@
 package com.theironyard;
 
 import spark.ModelAndView;
+import spark.Session;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
+import spark.template.handlebars.HandlebarsTemplateEngine;
 
 import java.util.HashMap;
 
 public class Main {
 
-    static User user;
-
+    static HashMap<String, User> allUsers = new HashMap<>();
 
     public static void main(String[] args) {
         Spark.init();
-        HashMap<String, User> allUsers = new HashMap<>();
 
-        User alice = new User("Alice", "1234");
-        User bob = new User("Bob", "2345");
 
-        allUsers.put(alice.name, alice);
-        allUsers.put(bob.name, bob);
 
         Spark.get(
                 "/",
                 ((request, response) -> {
+                    User user = getUserFromSession(request.session());
+
+
                     HashMap m = new HashMap();
                     if (user == null) {
                         return new ModelAndView(m, "index.html");
                     }
                     else {
-                        m.put("name", user.name);
-                        m.put("password", user.password);
-                        m.put("messages", user.messages);
+                        m.put("name", user.getName());
+                        m.put("password", user.getPassword());
+                        m.put("messages", user.getMessages());
                         return new ModelAndView(m, "messages.html");
                     }
                 }),
@@ -41,21 +40,26 @@ public class Main {
         Spark.post(
                 "/create-user",
                 ((request, response) -> {
+                    User user = null;
                     String name = request.queryParams("loginName");
                     String password = request.queryParams("password");
                     if (allUsers.containsKey(name)) {
-                        if (password.equalsIgnoreCase(allUsers.get(name).password)){
-                            user = new User(name, password);
+                        if (password.equalsIgnoreCase(allUsers.get(name).getPassword())){
+                            user = allUsers.get(name);
                             response.redirect("/");
                         } else {
                             response.redirect("/");
                         }
                     }
                     else {
-                        user = new User (name, password);
-                        allUsers.put(user.name, user);
+                        user = new User(name, password);
+                        allUsers.put(user.getName(), user);
                         response.redirect("/");
                     }
+                    Session session = request.session();
+                    session.attribute("userName", name);
+                    allUsers.put(user.getName(), user);
+
                     return "";
                 })
         );
@@ -64,11 +68,48 @@ public class Main {
                 "/create-message",
                 ((request, response) -> {
                     String text = request.queryParams("newMessage");
-                    Message message = new Message(text, user.messages.size() + 1);
-                    user.messages.add(message);
+                    Message message = new Message(text);
+                    getUserFromSession(request.session()).getMessages().add(message);
                     response.redirect("/");
                     return "";
                 })
         );
+        Spark.post(
+                "/delete-message",
+                ((request, response) -> {
+                    int messageNumber = Integer.valueOf(request.queryParams("deleteMessageId")) - 1;
+                    getUserFromSession(request.session()).getMessages().remove(messageNumber);
+                    response.redirect("/");
+                    return "";
+                })
+        );
+        Spark.post(
+                "/edit-message",
+                ((request, response) -> {
+                    int messageNumber = Integer.valueOf(request.queryParams("editMessageId")) - 1;
+                    String newMessage = request.queryParams("editMessageText");
+                    getUserFromSession(request.session()).getMessages().get(messageNumber).setMessage(newMessage);
+                    //getUserFromSession(request.session()).getMessages().add(new Message(newMessage, messageNumber + 1));
+                    response.redirect("/");
+                    return "";
+                })
+        );
+
+
+
+        Spark.post(
+                "/logout",
+                ((request, response) -> {
+                    Session session = request.session();
+                    session.invalidate();
+                    response.redirect("/");
+                    return "";
+                })
+        );
+    }
+
+    static User getUserFromSession(Session session) {
+        String name = session.attribute("userName");
+        return allUsers.get(name);
     }
 }
